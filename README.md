@@ -1,4 +1,4 @@
-# Arduino color display of ELRS control (channel) data values
+# Arduino Display of ELRS Channel Values
 
 ![display](tft_channel_display.jpg)
 

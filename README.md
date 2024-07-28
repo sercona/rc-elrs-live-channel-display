@@ -2,6 +2,8 @@
 
 ![display](tft_channel_display.jpg)
 
+* Demo video: (https://github.com/sercona/rc-elrs-live-channel-display/blob/main/elrs-controller-demo1.mp4)
+
 * Based on some demo code from the expresslrs project
 
 * Hardware needed:
@@ -22,4 +24,3 @@
   
 ![wiring](diy-build-wiring.png)
   
-![demo_video](elrs-controller-demo1.mp4)

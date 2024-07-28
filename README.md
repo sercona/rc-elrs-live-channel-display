@@ -2,6 +2,13 @@
 
 ![display](tft_channel_display.jpg)
 
+* Purpose:
+  - For remote control (RC) pilots who want to see what the values being sent by their transmitter (handset) are.
+  - ExpressLRS (ELRS) is a new RC protocol that is becoming the dominant control protocol in the hobby.
+  - To bring-up (build, fix, modify) flight controllers and other related hardware, its useful to have something that can see actual values in realtime.
+  - ELRS uses the concept of 'binding' (roughly similar to bluetooth) to link stations; to view an ELRS transmitter stream, you must be using the same 'binding phrase' as the transmitter.
+
+
 * Demo video: (https://github.com/sercona/rc-elrs-live-channel-display/blob/main/elrs-controller-demo1.mp4)
 
 * Based on some demo code from the expresslrs project

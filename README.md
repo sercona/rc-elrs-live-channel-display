@@ -21,6 +21,9 @@
   - Only 3 wires are needed for elrs listening; the data wire (to the RX gpio of the ESP), and 5v power and ground.
   - Power the ESP chip, tft display and elrs module from an external 5v supply.
   - If you need to reflash the ESP, remember to remove the elrs (or put a switch on the single data line) before you flash and reconnect after flash is done.
+  - Wiring gpio pins can be found in src/esp_tft_elrs_decoder.h
+    - TFT pins on wemos d1 mini: (D4=SPI_CS, D5=SPI_CLK, D6=SPI_MISO, D7=DPI_MOSI, D8=SPI_CS)
+    - TFT will need backlight; wire that to 5v.  RESET wire on tft goes to RESET on ESP chip.  Note, TFT vcc is 3.3v not 5v!
   
   ![wiring](diy-build-wiring.png)
 

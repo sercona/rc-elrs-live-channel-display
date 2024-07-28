@@ -22,8 +22,8 @@
   - Power the ESP chip, tft display and elrs module from an external 5v supply.
   - If you need to reflash the ESP, remember to remove the elrs (or put a switch on the single data line) before you flash and reconnect after flash is done.
   
-![wiring](diy-build-wiring.png)
+  ![wiring](diy-build-wiring.png)
 
 * 3D print STL files in the stl folder
-![3dprints](3d-printables.png)
+  ![3dprints](3d-printables.png)
 

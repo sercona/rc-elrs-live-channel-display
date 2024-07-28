@@ -24,3 +24,4 @@
   
 ![wiring](diy-build-wiring.png)
   
+![3dprints](3d-printables.png)

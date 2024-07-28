@@ -20,5 +20,6 @@
   - Power the ESP chip, tft display and elrs module from an external 5v supply.
   - If you need to reflash the ESP, remember to remove the elrs (or put a switch on the single data line) before you flash and reconnect after flash is done.
   
+![wiring](diy-build-wiring.png)
   
-
+![demo_video](elrs-controller-demo1.mp4)

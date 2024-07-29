@@ -22,7 +22,7 @@
 * Software:
   - Import the code as you normally would with the arduino IDE
   - Flash your esp8266 over its usb serial port.  IMPORTANT: remove the elrs receiver when you serial-flash your ESP chip.
-  - Once flash is done, the elrs rx can now be plugged into the serial rx gpio of the ESP8266.
+  - Once flash is done, the elrs receiver module can now be plugged in; with its 'tx' pin (this is the data OUT from the elrs module) connected to the 'rx' pin on the only serial uart of the ESP8266. 
 
 * Connections:
   - Only 3 wires are needed for elrs listening; the data wire (to the RX gpio of the ESP), and 5v power and ground.

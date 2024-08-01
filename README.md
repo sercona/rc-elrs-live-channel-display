@@ -1,6 +1,6 @@
 # Arduino Display of ELRS Channel Values
 
-![display](tft_channel_display.jpg)
+![display](images/tft_channel_display.jpg)
 
 * Purpose:
   - For remote control (RC) pilots who want to see what the values being sent by their transmitter (handset) are.
@@ -9,7 +9,7 @@
   - ELRS uses the concept of 'binding' (roughly similar to bluetooth) to link stations; to view an ELRS transmitter stream, you must be using the same 'binding phrase' as the transmitter.
 
 
-* Demo video: (https://github.com/sercona/rc-elrs-live-channel-display/blob/main/elrs-controller-demo1.mp4)
+* Demo video: ![demo](images/elrs-controller-demo1.mp4)
 
 * Based on some demo code from the expresslrs project
 
@@ -32,8 +32,8 @@
     - TFT pins on wemos d1 mini: (D4=SPI_CS, D5=SPI_CLK, D6=SPI_MISO, D7=SPI_MOSI, D8=SPI_CS)
     - TFT will need backlight; wire that to 5v.  RESET wire on tft goes to RESET on ESP chip.  Note, TFT vcc is 3.3v not 5v!
   
-  ![wiring](diy-build-wiring.png)
+  ![wiring](images/diy-build-wiring.png)
 
 * 3D print STL files in the stl folder
-  ![3dprints](3d-printables.png)
+  ![3dprints](images/3d-printables.png)
 

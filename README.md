@@ -9,7 +9,7 @@
   - ELRS uses the concept of 'binding' (roughly similar to bluetooth) to link stations; to view an ELRS transmitter stream, you must be using the same 'binding phrase' as the transmitter.
 
 
-* Demo video: ![demo](images/elrs-controller-demo1.mp4)
+* Demo video: https://github.com/sercona/rc-elrs-live-channel-display/raw/main/images/elrs-controller-demo1.mp4
 
 * Based on some demo code from the expresslrs project
 

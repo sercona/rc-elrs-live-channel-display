@@ -23,7 +23,7 @@ class UI_TFT {
     void draw_sercona_logo(void);
     void refresh_screen(void);
     void draw_labels(void);
-    void update_sticks(bool clear_stick_display);
+    void update_bargraphs(void);
 
 
   private:

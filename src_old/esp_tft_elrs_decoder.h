@@ -14,8 +14,18 @@ extern const char *MY_INO_FILE;
 
 //#define VERBOSE_SERIAL_TTY   // turn this OFF for production
 
-#define RXD2          3 //9  // esp32-c3 supermini (connect this to elrs-tx out)
-#define TXD2          1 //3  // leave this unconnected
+// ----
+// NOTE: define this FIRST before you include the TFT_eSPI.h file
+// ----
+// #define ST7735_INITB       // not working
+#define ST7735_GREENTAB       // mostly works (noise on edge)
+// #define ST7735_GREENTAB2   // mostly works (noise on edge)
+// #define ST7735_GREENTAB3   // mostly works (noise on edge)
+// #define ST7735_REDTAB      // mostly works (noise on edge)
+// #define ST7735_BLACKTAB
+
+
+
 
 #include <Arduino.h>
 #include <EEPROM.h>
@@ -31,10 +41,9 @@ extern TFT_eSPI      tft;
 
 #include "CrsfSerial.h"
 
-// ignore 0, use 1..16
-extern int chan_values[17];
-extern int last_chan_values[17];
-extern bool link_down;
+
+extern int chan_values[9];
+extern int last_chan_values[9];
 
 
 //
@@ -42,13 +51,9 @@ extern bool link_down;
 //
 
 // constants for screen size and strip graph size
-#ifdef SMALL_TFT
 #define TFT_SIZE_H               (160)
 #define TFT_SIZE_W               (128)
-#endif
 
-#define TFT_SIZE_H               (320)
-#define TFT_SIZE_W               (240)
 
 
 

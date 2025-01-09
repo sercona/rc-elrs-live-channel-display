@@ -131,7 +131,7 @@ void UI_TFT::update_sticks (bool clear_stick_display)
   int stick2_y_mapped = map(chan_values[2], 2000, 1000, stick2_min_y + 2, stick2_max_y - 4); // invert direction
 
   int fill_color;
-  if (!link_down) {
+  if (!link_down_status) {
     fill_color = TFT_RED;
 
     // render new stick lines (if not the first time thru)

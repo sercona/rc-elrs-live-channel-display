@@ -48,7 +48,7 @@ HardwareSerial hwUart1(1);
 
 CrsfSerial crsf(hwUart1, CRSF_BAUDRATE);   // using the ONLY hardware serial on esp8266 (so remove your elrs rx if you have to re-flash the esp)
 
-bool link_down;
+bool link_down_status;
 
 
 void packetChannels (void)
@@ -62,7 +62,7 @@ void packetChannels (void)
 void crsfLinkUp (void)
 {
   digitalWrite(PIN_LED, 0);
-  link_down = false;
+  link_down_status = false;
 }
 
 
@@ -70,7 +70,7 @@ void crsfLinkDown (void)
 {
   digitalWrite(PIN_LED, 1);
 
-  link_down = true;
+  link_down_status = true;
 
   // failsafe middle values
   for (int i = 0; i < 17; i++) {
@@ -111,7 +111,7 @@ void setup (void)
     last_chan_values[i] = -1;  // force a change-detect on first loop
   }
   
-  link_down = true;
+  link_down_status = true;
 
 
   // init color display

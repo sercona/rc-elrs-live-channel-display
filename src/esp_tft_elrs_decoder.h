@@ -34,7 +34,7 @@ extern TFT_eSPI      tft;
 // ignore 0, use 1..16
 extern int chan_values[17];
 extern int last_chan_values[17];
-extern bool link_down;
+extern bool link_down_status;
 
 
 //

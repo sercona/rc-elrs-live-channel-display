@@ -7,7 +7,7 @@
 
   elrs code based on open code from the 'express LRS' project.
 
-  (c) 2024 linux-works labs
+  (c) 2024-2025 linux-works labs
 */
 
 const char *MY_INO_FILE = __FILE__;  // capture the .ino filename and save it
@@ -29,8 +29,8 @@ UI_TFT gui;               // GUI class for this app
 
 
 // controller rx values (1-16, ignore 0)
-int chan_values[17];
-int last_chan_values[17];
+int chan_values[CRSF_NUM_CHANNELS + 1];
+int last_chan_values[CRSF_NUM_CHANNELS + 1];
 
 #define LED_BUILTIN 4  // CYD
 #define PIN_LED    LED_BUILTIN
@@ -48,36 +48,61 @@ HardwareSerial hwUart1(1);
 
 CrsfSerial crsf(hwUart1, CRSF_BAUDRATE);   // using the ONLY hardware serial on esp8266 (so remove your elrs rx if you have to re-flash the esp)
 
-bool link_down_status;
 
 
 void packetChannels (void)
 {
-  for (int chan = 1; chan <= 16; chan++) {
+  for (int chan = 1; chan <= CRSF_NUM_CHANNELS; chan++) {
     chan_values[chan] = crsf.getChannel(chan);
   }
+}
+
+
+void crsfPacketBattery (crsf_sensor_battery_t *batterySensor)
+{
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.println("BATTERY EVENT");
+#endif
+
+  //gui.update_battery(false);   // with battery telem data
 }
 
 
 void crsfLinkUp (void)
 {
   digitalWrite(PIN_LED, 0);
-  link_down_status = false;
+
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.println("LINK UP EVENT");
+#endif
+}
+
+
+void crsfPacketLink (crsfLinkStatistics_t *ls)
+{
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.println("LINK STATS EVENT");
+#endif
+}
+
+
+void crsfGps (crsf_sensor_gps_t *gpsSensor)
+{
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.println("GPS EVENT");
+#endif
 }
 
 
 void crsfLinkDown (void)
 {
-  digitalWrite(PIN_LED, 1);
-
-  link_down_status = true;
+  //digitalWrite(PIN_LED, 1);
 
   // failsafe middle values
-  for (int i = 0; i < 17; i++) {
+  for (uint8_t i = 0; i < CRSF_NUM_CHANNELS+1; i++) {
     chan_values[i] = 1500;
     last_chan_values[i] = -1;  // force a change-detect on first loop
   }
-
 
   gui.update_sticks(true);   // clear out previous data for sticks
 }
@@ -86,8 +111,8 @@ void crsfLinkDown (void)
 
 void setup (void)
 {
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, 1);  // turn off led
+  //pinMode(LED_BUILTIN, OUTPUT);
+  //digitalWrite(LED_BUILTIN, 1);  // turn off led
 
 
   //
@@ -100,18 +125,17 @@ void setup (void)
   while (!Serial) {
     delay(100);      // will pause Zero, Leonardo, etc until serial console opens
   }
+  Serial.println("\nesp32 elrs serial listener/decoder\n"); Serial.flush();
 #else
   Serial.setDebugOutput(false);
 #endif
 
 
   // init channels
-  for (int i = 0; i < 17; i++) {
+  for (int i = 0; i < CRSF_NUM_CHANNELS; i++) {
     chan_values[i] = 1500;
     last_chan_values[i] = -1;  // force a change-detect on first loop
   }
-  
-  link_down_status = true;
 
 
   // init color display
@@ -129,15 +153,19 @@ void setup (void)
   gui.draw_labels();
 
   // use a 2nd hardware uart for elrs
-  hwUart1.begin(CRSF_BAUDRATE, SERIAL_8N1, RXD2, TXD2);
+  // note, this may be created inside the crsf class!
+  //hwUart1.begin(CRSF_BAUDRATE, SERIAL_8N1, PIN_RXD2, PIN_TXD2);
 
   // start the crossfire class
   crsf.begin();
 
   // attach the channels callback
-  crsf.onPacketChannels = &packetChannels;
-  crsf.onLinkUp         = &crsfLinkUp;
-  crsf.onLinkDown       = &crsfLinkDown;
+  crsf.onPacketChannels       = &packetChannels;
+  crsf.onLinkUp               = &crsfLinkUp;
+  crsf.onLinkDown             = &crsfLinkDown;
+  crsf.onPacketLinkStatistics = &crsfPacketLink;
+  crsf.onPacketBattery        = &crsfPacketBattery;
+  crsf.onPacketGps            = &crsfGps;
 }
 
 
@@ -166,7 +194,6 @@ void loop (void)
   }
 
 } // loop
-
 
 
 

@@ -1,18 +1,15 @@
 /*
    ui_tft.h
 
-   (c) 2023-2024 linux-works labs
+   (c) 2023-2025 linux-works labs
 */
 
-
-#ifndef _ui_tft_
-#define _ui_tft_
+#ifndef _UI_TFT_H_
+#define _UI_TFT_H_
 
 #include <Arduino.h>
 
 #include "esp_tft_elrs_decoder.h"             // our main include
-
-
 
 class UI_TFT {
 
@@ -25,7 +22,6 @@ class UI_TFT {
     void draw_labels(void);
     void update_sticks(bool clear_stick_display);
 
-
   private:
     // private methods
 };
@@ -33,5 +29,4 @@ class UI_TFT {
 extern UI_TFT gui;
 
 
-
-#endif // _ui_tft_ 
+#endif // _UI_TFT_H_ 

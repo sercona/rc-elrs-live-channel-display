@@ -1,8 +1,12 @@
 /*
    CrsfSerial.cpp
+   
+   (based on public elrs project code.)
 */
 
 #include "CrsfSerial.h"
+
+#include "esp_tft_elrs_decoder.h"             // our main include
 
 
 CrsfSerial::CrsfSerial (HardwareSerial &port, uint32_t baud) :
@@ -15,12 +19,13 @@ CrsfSerial::CrsfSerial (HardwareSerial &port, uint32_t baud) :
 void CrsfSerial::begin (uint32_t baud)
 {
   if (baud != 0) {
-    _port.begin(baud);
+    _port.begin(CRSF_BAUDRATE, SERIAL_8N1, PIN_RXD2, PIN_TXD2);
+
   } else {
-    _port.begin(_baud);
+    _port.begin(CRSF_BAUDRATE, SERIAL_8N1, PIN_RXD2, PIN_TXD2);
   }
 
-  _port.setDebugOutput(false);  // disable any debug (esp8266)
+  //_port.setDebugOutput(false);  // disable any debug (esp8266)
 }
 
 
@@ -99,10 +104,10 @@ void CrsfSerial::handleByteReceived (void)
 }
 
 
-void CrsfSerial::checkPacketTimeout()
+void CrsfSerial::checkPacketTimeout (void)
 {
   // If we haven't received data in a long time, flush the buffer a byte at a time (to trigger shiftyByte)
-  if (_rxBufPos > 0 && millis() - _lastReceive > CRSF_PACKET_TIMEOUT_MS) {
+  if ( (_rxBufPos > 0) && (millis() - _lastReceive) > CRSF_PACKET_TIMEOUT_MS ) {
     while (_rxBufPos) {
       shiftRxBuffer(1);
     }
@@ -110,9 +115,9 @@ void CrsfSerial::checkPacketTimeout()
 }
 
 
-void CrsfSerial::checkLinkDown()
+void CrsfSerial::checkLinkDown (void)
 {
-  if (_linkIsUp && millis() - _lastChannelsPacket > CRSF_FAILSAFE_STAGE1_MS) {
+  if (_linkIsUp && (millis() - _lastChannelsPacket) > CRSF_FAILSAFE_STAGE1_MS) {
     if (onLinkDown) {
       onLinkDown();
     }
@@ -122,13 +127,17 @@ void CrsfSerial::checkLinkDown()
 }
 
 
-void CrsfSerial::processPacketIn(uint8_t len)
+void CrsfSerial::processPacketIn (uint8_t len)
 {
   const crsf_header_t *hdr = (crsf_header_t *)_rxBuf;
   if (hdr->device_addr == CRSF_ADDRESS_FLIGHT_CONTROLLER) {
     switch (hdr->type)  {
       case CRSF_FRAMETYPE_GPS:
         packetGps(hdr);
+        break;
+
+      case CRSF_FRAMETYPE_BATTERY_SENSOR:
+        packetBattery(hdr);
         break;
 
       case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
@@ -144,7 +153,7 @@ void CrsfSerial::processPacketIn(uint8_t len)
 
 
 // Shift the bytes in the RxBuf down by cnt bytes
-void CrsfSerial::shiftRxBuffer(uint8_t cnt)
+void CrsfSerial::shiftRxBuffer (uint8_t cnt)
 {
   // If removing the whole thing, just set pos to 0
   if (cnt >= _rxBufPos) {
@@ -168,19 +177,19 @@ void CrsfSerial::shiftRxBuffer(uint8_t cnt)
 }
 
 
-void CrsfSerial::packetChannelsPacked(const crsf_header_t *p)
+void CrsfSerial::packetChannelsPacked (const crsf_header_t *p)
 {
   crsf_channels_t *ch = (crsf_channels_t *)&p->data;
-  _channels[0] = ch->ch0;
-  _channels[1] = ch->ch1;
-  _channels[2] = ch->ch2;
-  _channels[3] = ch->ch3;
-  _channels[4] = ch->ch4;
-  _channels[5] = ch->ch5;
-  _channels[6] = ch->ch6;
-  _channels[7] = ch->ch7;
-  _channels[8] = ch->ch8;
-  _channels[9] = ch->ch9;
+  _channels[0]  = ch->ch0;
+  _channels[1]  = ch->ch1;
+  _channels[2]  = ch->ch2;
+  _channels[3]  = ch->ch3;
+  _channels[4]  = ch->ch4;
+  _channels[5]  = ch->ch5;
+  _channels[6]  = ch->ch6;
+  _channels[7]  = ch->ch7;
+  _channels[8]  = ch->ch8;
+  _channels[9]  = ch->ch9;
   _channels[10] = ch->ch10;
   _channels[11] = ch->ch11;
   _channels[12] = ch->ch12;
@@ -205,11 +214,27 @@ void CrsfSerial::packetChannelsPacked(const crsf_header_t *p)
 }
 
 
-void CrsfSerial::packetLinkStatistics(const crsf_header_t *p)
+void CrsfSerial::packetLinkStatistics (const crsf_header_t *p)
 {
   const crsfLinkStatistics_t *link = (crsfLinkStatistics_t *)p->data;
 
   memcpy(&_linkStatistics, link, sizeof(_linkStatistics));
+
+  // print stats (debug)
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.print("link stats:\n");
+
+  Serial.print(" up_RSSI_1:         "); Serial.print(link->uplink_RSSI_1);
+  Serial.print(" up_RSSI_2:         "); Serial.print(link->uplink_RSSI_2);
+  Serial.print(" up_Link_quality:   "); Serial.print(link->uplink_Link_quality);
+  Serial.print(" up_SNR:            "); Serial.print(link->uplink_SNR);
+  Serial.print(" active_antenna:    "); Serial.print(link->active_antenna);
+  Serial.print(" rf_Mode:           "); Serial.print(link->rf_Mode);
+  Serial.print(" uplink_TX_Power:   "); Serial.print(link->uplink_TX_Power);
+  Serial.print(" down_RSSI:         "); Serial.print(link->downlink_RSSI);
+  Serial.print(" down_Link_quality: "); Serial.print(link->downlink_Link_quality);
+  Serial.print(" down_SNR:          "); Serial.print(link->downlink_SNR);
+#endif
 
   if (onPacketLinkStatistics) {
     onPacketLinkStatistics(&_linkStatistics);
@@ -217,9 +242,10 @@ void CrsfSerial::packetLinkStatistics(const crsf_header_t *p)
 }
 
 
-void CrsfSerial::packetGps(const crsf_header_t *p)
+void CrsfSerial::packetGps (const crsf_header_t *p)
 {
   const crsf_sensor_gps_t *gps = (crsf_sensor_gps_t *)p->data;
+
   _gpsSensor.latitude = be32toh(gps->latitude);
   _gpsSensor.longitude = be32toh(gps->longitude);
   _gpsSensor.groundspeed = be16toh(gps->groundspeed);
@@ -227,25 +253,63 @@ void CrsfSerial::packetGps(const crsf_header_t *p)
   _gpsSensor.altitude = be16toh(gps->altitude);
   _gpsSensor.satellites = gps->satellites;
 
+  // print gps (debug)
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.print("gps stats:\n");
+
+  Serial.print(" lat :     ");  Serial.print(_gpsSensor.latitude);
+  Serial.print(" long:     ");  Serial.print(_gpsSensor.longitude);
+  Serial.print(" gnd spd:  ");  Serial.print(_gpsSensor.groundspeed);
+  Serial.print(" sats:     ");  Serial.print(_gpsSensor.satellites);
+  Serial.print(" heading:  ");  Serial.print(_gpsSensor.heading);
+  Serial.print(" altitude: ");  Serial.print(_gpsSensor.altitude);
+#endif
+
   if (onPacketGps) {
     onPacketGps(&_gpsSensor);
   }
 }
 
 
-void CrsfSerial::write(uint8_t b)
+
+void CrsfSerial::packetBattery (const crsf_header_t *p)
+{
+  const crsf_sensor_battery_t *battery = (crsf_sensor_battery_t *)p->data;
+
+  _batterySensor.voltage = be16toh(battery->voltage);
+  _batterySensor.current = be16toh(battery->current);
+  _batterySensor.remaining = battery->remaining;
+  _batterySensor.capacity = battery->capacity;
+
+  // print battery (debug)
+#ifdef VERBOSE_SERIAL_TTY
+  Serial.print("battery stats:\n");
+
+  Serial.print(" volts :    ");  Serial.print(_batterySensor.voltage);
+  Serial.print(" amps :     ");  Serial.print(_batterySensor.current);
+  Serial.print(" remain :   ");  Serial.print(_batterySensor.remaining);
+  Serial.print(" capacity : ");  Serial.print(_batterySensor.capacity);
+#endif
+
+  if (onPacketBattery) {
+    onPacketBattery(&_batterySensor);
+  }
+}
+
+
+void CrsfSerial::write (uint8_t b)
 {
   _port.write(b);
 }
 
 
-void CrsfSerial::write(const uint8_t *buf, size_t len)
+void CrsfSerial::write (const uint8_t *buf, size_t len)
 {
   _port.write(buf, len);
 }
 
 
-void CrsfSerial::queuePacket(uint8_t addr, uint8_t type, const void *payload, uint8_t len)
+void CrsfSerial::queuePacket (uint8_t addr, uint8_t type, const void *payload, uint8_t len)
 {
   if (getPassthroughMode()) {
     return;
@@ -265,6 +329,7 @@ void CrsfSerial::queuePacket(uint8_t addr, uint8_t type, const void *payload, ui
   write(buf, len + 4);
 }
 
+
 /**
    @brief   Enter passthrough mode (serial sent directly to shiftybyte),
             optionally changing the baud rate used during passthrough mode
@@ -274,7 +339,7 @@ void CrsfSerial::queuePacket(uint8_t addr, uint8_t type, const void *payload, ui
             New baud rate for passthrough mode, or 0 to not change baud
             Not used if disabling passthough
 */
-void CrsfSerial::setPassthroughMode(bool val, uint32_t passthroughBaud)
+void CrsfSerial::setPassthroughMode (bool val, uint32_t passthroughBaud)
 {
   if (val) {
 
@@ -312,3 +377,5 @@ void CrsfSerial::setPassthroughMode(bool val, uint32_t passthroughBaud)
 
   begin(_passthroughBaud);
 }
+
+// end CrsfSerial.cpp

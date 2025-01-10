@@ -1,15 +1,14 @@
 /*
    ui_tft.cpp
 
-   (c) 2023-2024 linux-works labs
+   (c) 2023-2025 linux-works labs
 */
 
 #include "ui_tft.h"
 
-#define x_off     16
-#define max_width 64   // larger bargraphs
+#define max_width 50   // larger bargraphs
 
-int top_offset = 42;
+int top_offset = 42-35;
 int bargraph_spacing = 17;
 int bargraph_height = 17;
 
@@ -26,14 +25,18 @@ void UI_TFT::refresh_screen (void)
 // update dynamic data
 void UI_TFT::update_sticks (bool clear_stick_display)
 {
-  char l_buf[LBUF_SIZE];
+  char l_buf[32];
+
   int color;
   int mapped_chan_val;
 
-  int circle_radius = 45;
-  int center_y = 50;
-  int center_x1 = 60 - 8;
-  int center_x2 = 16 + 2 * circle_radius + center_x1;
+  int circle_radius = 45 - 10;
+  int center_y = 50 - 10;
+  int center_x1 = 60 - 10 - 8;
+  int center_x2 = 8 + 2 * circle_radius + center_x1;
+  int top_graphs_y_offset = 80;
+  int top_graphs_x_offset = 12;
+  //int top_graphs_col_y_loc = 114;
 
   int y_pos;
   int more_x;
@@ -131,7 +134,7 @@ void UI_TFT::update_sticks (bool clear_stick_display)
   int stick2_y_mapped = map(chan_values[2], 2000, 1000, stick2_min_y + 2, stick2_max_y - 4); // invert direction
 
   int fill_color;
-  if (!link_down_status) {
+  if (crsf.isLinkUp()) {
     fill_color = TFT_RED;
 
     // render new stick lines (if not the first time thru)
@@ -146,17 +149,13 @@ void UI_TFT::update_sticks (bool clear_stick_display)
   tft.fillCircle(stick1_x_mapped, stick1_y_mapped, 4, fill_color);
   tft.fillCircle(stick2_x_mapped, stick2_y_mapped, 4, fill_color);
 
-  // copy current to last-saved
-  for (int j = 1; j <= 4; j++) {
-    last_chan_values[j] = chan_values[j];
-  }
 
 
   //
   // controller bargraphs for remaining channels
   //
 
-  for (int chan = 5; chan <= 16; chan++) {
+  for (int chan = 1; chan <= CRSF_NUM_CHANNELS; chan++) {
 
     // did value change?
 
@@ -164,12 +163,12 @@ void UI_TFT::update_sticks (bool clear_stick_display)
 
       last_chan_values[chan] = chan_values[chan];    // save for compare next loop
 
-      if (chan <= 10) {
+      if (chan <= 8) {
+        more_x = top_graphs_x_offset + 16;
         y_pos = top_offset + (chan - 1) * bargraph_spacing;
-        more_x = 2;
       } else {
-        y_pos = top_offset + (chan - 6 - 1) * bargraph_spacing;  // wrap around to top of 2nd column
-        more_x = 112; //67;
+        more_x = top_graphs_x_offset + 18 + 120;
+        y_pos = top_offset + (chan - 8 - 1) * bargraph_spacing;  // wrap around to top of 2nd column
       }
 
       // alternate colors
@@ -203,32 +202,41 @@ void UI_TFT::update_sticks (bool clear_stick_display)
       //
 
       // draw outline
-      tft.drawRoundRect(x_off + more_x,
-                        y_pos,
+      tft.drawRoundRect(more_x,
+                        top_graphs_y_offset + y_pos,
                         max_width, 10 - 2,
                         2, // radius
                         color);
 
       // draw value as filled-in area
-      tft.fillRoundRect(x_off + more_x + 1,
-                        y_pos + 1,
+      tft.fillRoundRect(more_x + 1,
+                        top_graphs_y_offset + y_pos + 1,
                         mapped_chan_val, 8 - 2,
                         2, // radius
                         color);
 
       // draw rest of value as blacked-out area
-      tft.fillRoundRect(x_off + more_x + mapped_chan_val + 1,
-                        y_pos + 1,
+      tft.fillRoundRect(more_x + mapped_chan_val + 1,
+                        top_graphs_y_offset + y_pos + 1,
                         max_width - mapped_chan_val - 2, 8 - 2,
                         2, // radius
                         TFT_BLACK);
 
-#if 0
+
+      // print channel number
+      sprintf(l_buf, "c%d", chan);
+      if (chan <= 8) { // first column, make spacing look better
+        tft.setCursor(more_x - 20, top_graphs_y_offset + y_pos + 1);
+      } else {
+        tft.setCursor(more_x - 24, top_graphs_y_offset + y_pos + 1);
+      }
+      tft.print(l_buf);
+
       // print actual value
       sprintf(l_buf, "%4d", chan_values[chan]);
-      tft.setCursor(102, y_pos + 1);
+      tft.setCursor(more_x + 60 - 5, top_graphs_y_offset + y_pos + 1);
       tft.print(l_buf);
-#endif
+
     }
   }
 }
@@ -239,9 +247,8 @@ void UI_TFT::draw_labels (void)
 {
   char l_buf[LBUF_SIZE];
   int color;
-  int y_offset = 80;  // where to put the labels (y-axis)
 
-
+  return;
 
   // legend text
   tft.setTextSize(1);
@@ -264,7 +271,7 @@ void UI_TFT::draw_labels (void)
 
   // start out with channel 5 (first 4 go to the sticks)
 
-  for (int chan = 5; chan <= 10; chan++) {
+  for (int chan = 1; chan <= 16; chan++) {
 
     int y_pos = (top_offset - 7) + (chan - 1) * bargraph_spacing;
 
@@ -282,9 +289,9 @@ void UI_TFT::draw_labels (void)
     tft.setTextColor(color, TFT_BLACK);
 
     // move the bottom 4 chans down a bit more
-    if (chan >= 5) {
-      y_pos += 7;
-    }
+    //if (chan >= 5) {
+    //  y_pos += 7;
+    //}
 
     tft.setTextColor(color, TFT_BLACK);
 

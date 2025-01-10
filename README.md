@@ -1,6 +1,9 @@
 # Arduino Display of ELRS Channel Values
 
-![display](images/tft_channel_display.jpg)
+![display](images/esp32-live-display-01.png)
+
+(note, this is the new esp32 version using the CYB (cheap yellow board)
+
 
 * Purpose:
   - For remote control (RC) pilots who want to see what the values being sent by their transmitter (handset) are.
